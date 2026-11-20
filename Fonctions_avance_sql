@@ -1,0 +1,11 @@
+CREATE VIEW SOUS_REQUETE_FROM AS
+SELECT *
+FROM (
+SELECT Employe_ID, Nom, YEAR(Date_vente) AS Annee, SUM(Montant_total) AS Chiffre_Affaire,
+DENSE_RANK ()
+OVER (PARTITION BY YEAR(Date_vente) ORDER BY SUM(Montant_total)DESC ) AS Classement_annee
+FROM employes
+INNER JOIN Ventes USING (Employe_ID)
+GROUP BY Employe_ID, Nom, YEAR(Date_vente)
+) AS Classement
+WHERE Classement_annee BETWEEN 1 AND 3;
