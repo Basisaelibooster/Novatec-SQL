@@ -23,3 +23,20 @@ ORDER BY PrixUnitaire ASC;
 
 SELECT NomProduit, PrixUnitaire FROM Produits
 ORDER BY PrixUnitaire DESC;
+
+-- 2.7 Produits qui commencent par A, contiennent A, etc.
+-- Commence par A
+SELECT NomProduit FROM Produits
+WHERE NomProduit LIKE 'A%';
+
+-- Contient la lettre A
+SELECT NomProduit FROM Produits
+WHERE NomProduit LIKE '%A%';
+
+-- Commence par N et se termine par X
+SELECT NomProduit FROM Produits
+WHERE NomProduit LIKE 'N%X';
+
+-- Se termine par M
+SELECT NomProduit FROM Produits
+WHERE NomProduit LIKE '%M';
