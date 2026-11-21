@@ -1,11 +1,165 @@
 CREATE VIEW SOUS_REQUETE_FROM AS
+
 SELECT *
+
 FROM (
-SELECT Employe_ID, Nom, YEAR(Date_vente) AS Annee, SUM(Montant_total) AS Chiffre_Affaire,
-DENSE_RANK ()
+
+SELECT 
+    Employe_ID, 
+    Nom, 
+    YEAR(Date_vente) AS Annee, 
+    SUM(Montant_total) AS Chiffre_Affaire,
+    DENSE_RANK ()
+
 OVER (PARTITION BY YEAR(Date_vente) ORDER BY SUM(Montant_total)DESC ) AS Classement_annee
+
 FROM employes
+
 INNER JOIN Ventes USING (Employe_ID)
 GROUP BY Employe_ID, Nom, YEAR(Date_vente)
-) AS Classement
+)   AS Classement
+
 WHERE Classement_annee BETWEEN 1 AND 3;
+
+
+SELECT Employe_ID, Nom, Count(ventes.Vente_ID) AS Nombre_de_vente
+FROM employes
+LEFT JOIN ventes USING (Employe_ID)
+WHERE Employe_ID NOT IN (
+	SELECT Employe_ID
+	FROM employes
+	INNER JOIN Ventes USING (Employe_ID)
+	GROUP BY Employe_ID )
+GROUP BY Employe_ID, Nom
+ORDER BY Nombre_de_vente;
+
+SELECT 
+    Employe_ID, 
+    Nom,
+COUNT(Ventes.vente_id) AS Nombre_Vendu,
+    CASE 
+    WHEN COUNT(Ventes.vente_ID) > 0 THEN "Avec vente"
+    ELSE "Sans vente"
+    END AS Statuts
+FROM Employes
+LEFT JOIN Ventes USING (Employe_ID)
+GROUP BY Employe_ID, Nom;
+
+WITH SOUS_REQUETE_AVANCE_AVEC_FROM AS (
+    SELECT *
+    FROM (
+    SELECT Employe_ID, Nom, YEAR(Date_vente) AS Annee, SUM(Montant_total) AS Chiffre_Affaire,
+    DENSE_RANK ()
+    OVER (PARTITION BY YEAR(Date_vente) ORDER BY SUM(Montant_total)DESC ) AS Classement_annee
+    FROM employes
+    INNER JOIN Ventes USING (Employe_ID)
+    GROUP BY Employe_ID, Nom, YEAR(Date_vente)
+    ) AS Classement
+    WHERE Classement_annee BETWEEN 1 AND 3)
+
+SELECT *
+FROM SOUS_REQUETE_AVANCE_AVEC_FROM
+WHERE Chiffre_Affaire > 25000;
+
+-- =========================================
+-- 1. CREATION DE LA BASE DE DONNEES
+-- =========================================
+
+DROP TABLE IF EXISTS Ventes;
+DROP TABLE IF EXISTS Produits;
+DROP TABLE IF EXISTS Employes;
+DROP TABLE IF EXISTS Fournisseurs;
+DROP TABLE IF EXISTS Clients;
+
+CREATE DATABASE novatech_BDD_Central;
+
+USE novatech_BDD_Central;
+
+
+-- =========================================
+-- 2. TABLE CLIENTS
+-- =========================================
+
+CREATE TABLE Clients (
+    Client_ID INT PRIMARY KEY,
+    Nom VARCHAR(50),
+    Prenom VARCHAR(50),
+    Adresse VARCHAR(255),
+    Email VARCHAR(255),
+    Telephone VARCHAR(20)
+);
+
+
+-- =========================================
+-- 3. TABLE FOURNISSEURS
+-- =========================================
+
+CREATE TABLE Fournisseurs (
+    Fournisseur_ID INT PRIMARY KEY,
+    NomFournisseur VARCHAR(100),
+    Adresse VARCHAR(255),
+    Email VARCHAR(255),
+    Telephone VARCHAR(20)
+);
+
+
+-- =========================================
+-- 4. TABLE PRODUITS
+-- =========================================
+
+CREATE TABLE Produits (
+    Produit_ID INT PRIMARY KEY,
+    NomProduit VARCHAR(100),
+    Description VARCHAR(255),
+    PrixUnit DECIMAL(10,2),
+    Fournisseur_ID INT,
+
+    FOREIGN KEY (Fournisseur_ID)
+        REFERENCES Fournisseurs(Fournisseur_ID)
+);
+
+
+-- =========================================
+-- 5. TABLE EMPLOYES
+-- =========================================
+
+CREATE TABLE Employes (
+    Employe_ID INT PRIMARY KEY,
+    Nom VARCHAR(50),
+    Prenom VARCHAR(50),
+    Fonction VARCHAR(100),
+    Email VARCHAR(255),
+    Telephone VARCHAR(20)
+);
+
+
+-- =========================================
+-- 6. TABLE VENTES
+-- =========================================
+
+CREATE TABLE Ventes (
+    Vente_ID INT PRIMARY KEY,
+    Date_Vente DATE,
+    Client_ID INT,
+    Employe_ID INT,
+    Produit_ID INT,
+    Quantite_Vendue INT,
+    Montant_Total DECIMAL(10,2),
+
+    FOREIGN KEY (Client_ID)
+        REFERENCES Clients(Client_ID),
+
+    FOREIGN KEY (Employe_ID)
+        REFERENCES Employes(Employe_ID),
+
+    FOREIGN KEY (Produit_ID)
+        REFERENCES Produits(Produit_ID)
+);
+
+
+
+SHOW TABLE;
+DESCRIBE Clients;
+DESCRIBE Employes;
+DESCRIBE Fournisseurs;
+DESCRIBE Produits;
