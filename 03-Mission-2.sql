@@ -34,8 +34,17 @@ SELECT NomProduit FROM Produits
 WHERE NomProduit LIKE '%A%';
 
 -- Commence par N et se termine par X
+
+-- Version 1 : avec le petit x, ça marche
+SELECT NomProduit FROM Produits
+WHERE NomProduit LIKE 'N%x';
+
+-- Version 2 : ILIKE, il ignore majuscule / minuscule
 SELECT NomProduit FROM Produits
 WHERE NomProduit LIKE 'N%X';
+-- devient
+SELECT NomProduit FROM Produits
+WHERE NomProduit ILIKE 'N%X';
 
 -- Se termine par M
 SELECT NomProduit FROM Produits
